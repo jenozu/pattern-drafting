@@ -1,61 +1,106 @@
 # Pattern Drafting
 
-A Python sewing-pattern drafting project. The first implemented garment is a basic pants/trouser block based on the Shapes of Fabric basic pants drafting method.
+A Python sewing-pattern drafting project. The first implemented garment is a basic pants/trouser block based on The Shapes of Fabric basic pants drafting method.
 
-## Current behavior
+Source method: https://www.theshapesoffabric.com/2020/08/16/learn-how-to-draft-the-basic-pants-pattern/
 
-The program accepts body measurements in centimetres and generates separate front and back trouser-block outlines as SVG.
+## Current state
 
-Implemented features include:
+The pants block now includes:
 
 - front/back crotch extensions
 - center-front and raised center-back construction
-- waist, hip, crotch, knee and hem shaping
-- crease/grainlines
+- waist, hip, crotch, knee, and hem shaping
+- tutorial-derived crease/grainlines
 - tutorial-derived knee placement
-- separate front/back Bézier crotch and thigh curves
-- 10 cm x 2 cm back dart
-- debug point labels
-- seam-length diagnostics
-- regression tests for path continuity and core drafting rules
+- separate front/back Bezier crotch and thigh curves
+- back dart located on the curved waistline
+- 10 cm dart length and 2 cm dart intake
+- automatic seam walking/equalization
+- knee alignment notches
+- 5 cm print calibration square
+- clean or debug SVG output
+- JSON diagnostics/report output
+- input validation
+- self-intersection regression tests
+- multi-size regression tests
+- GitHub Actions test workflow
+
+The historical front-crotch path-mixing failure is specifically guarded against by named semantic segments, endpoint-continuity tests, and sampled self-intersection checks.
+
+## Important limitation
+
+This is still a base block under fit validation, not a production-ready sewing pattern.
+
+No seam allowance is added. The next meaningful validation step is to make a toile/muslin from a correctly printed block and assess fit. Once that physical validation is complete, seam allowance, production markings, tiled PDF export, DXF export, and a user-facing UI can be added with confidence.
 
 ## Install
 
-```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-```
+    python -m venv .venv
 
-## Run
+Windows:
 
-```bash
-python main.py
-```
+    .venv\Scripts\activate
 
-Enter measurements in centimetres. Output: `pants_block.svg`.
+macOS/Linux:
 
-## Reference measurements
+    source .venv/bin/activate
 
-- waist: 74 cm
-- hip: 96 cm
-- waist to hip: 20 cm
-- crotch depth: 26 cm
-- waist to knee: 60 cm
-- waist to ankle: 104 cm
-- hem circumference: 46 cm
+Then:
+
+    pip install -r requirements.txt
+
+## Run interactively
+
+    python main.py
+
+## Run from a measurement JSON file
+
+    python main.py --measurements examples/measurements.json --output pants_block.svg --report pants_block_report.json
+
+Useful options:
+
+    python main.py --measurements examples/measurements.json --clean
+    python main.py --measurements examples/measurements.json --no-seam-walk
+
+## Measurement JSON format
+
+All values are centimetres.
+
+    {
+      "waist": 74,
+      "hip": 96,
+      "waist_to_hip": 20,
+      "crotch_depth": 26,
+      "waist_to_knee": 60,
+      "waist_to_ankle": 104,
+      "hem_circ": 46
+    }
+
+## Reference construction
+
+For the reference measurements above:
+
+- construction width: 50 cm
+- crotch level: 27.5 cm
+- front crotch extension: 6 cm
+- back crotch extension: 9 cm
+- front grainline x: 9.5 cm
+- back grainline x: 40.5 cm
+
+Before seam walking, the reconstructed reference geometry differs by roughly:
+
+- upper side seam: 5.4 mm
+- upper inseam: 3.3 mm
+
+The automated seam-walking pass reduces both to effectively zero within the configured tolerance.
+
+The upper inseam means knee to crotch point. The center-front/center-back crotch curve is not counted as part of the inseam.
 
 ## Tests
 
-```bash
-pytest -q
-```
+    pytest -q
 
-## Development status
+The suite covers source construction formulas, path continuity, self-intersection detection, multiple body-size profiles, knee-placement rules, seam walking, raw/unwalked mode, dart dimensions, waist right angles, invalid measurements, and CLI SVG/report generation.
 
-The earlier malformed front crotch/inseam behavior is no longer represented by a single opaque SVG path. Front and back outlines now use named semantic segments with endpoint-continuity tests.
-
-The block is still a development draft, not yet a production sewing pattern. The next stage is seam walking/equalization of the upper side seams and upper inseams, followed by physical/toile validation before adding seam allowances or printable export formats.
-
-See `PROJECT_STATUS.md` for the technical handoff.
+See PROJECT_STATUS.md and DESIGN_NOTES.md for the technical handoff.
