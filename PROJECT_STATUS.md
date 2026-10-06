@@ -1,66 +1,73 @@
 # Project Status / Technical Handoff
 
-## Recovery status
+## Current status
 
-The target GitHub repository was empty when recovery began. Accessible conversation history contained the drafting formulas and starter scaffold, but not the full later source that exhibited the known front-piece path bug.
+The repository now contains a working reconstruction of the basic front/back pants block geometry, based on the Shapes of Fabric basic pants tutorial.
+
+The exact historical buggy revision was not recoverable verbatim, so the outline layer was rebuilt from the documented construction method rather than fabricated as "recovered" code.
 
 ## Architecture
 
 - `main.py` — CLI input and generation entry point
 - `measurements.py` — measurement/config dataclasses
-- `drafting.py` — pants drafting calculations
-- `geometry.py` — unit/geometry helpers
-- `svg_export.py` — SVG construction drawing
-- `tests/` — formula regression checks
+- `drafting.py` — pants drafting calculations and named front/back outline segments
+- `geometry.py` — unit conversion, interpolation, Bézier sampling, seam-length helpers
+- `svg_export.py` — separated front/back SVG rendering, debug labels, grainlines and back dart
+- `tests/` — construction and path regression tests
 - `examples/measurements.json` — reference input
 
-## Drafting methodology recovered
-
-The project followed the Shapes of Fabric basic pants pattern tutorial.
+## Implemented construction rules
 
 - rectangle width = 1/2 hip + 2 cm ease
 - crotch level = crotch depth + 1.5 cm
 - front crotch extension = (1/2 hip) / 8
-- back crotch extension = (1/2 hip) / 8 + 3 cm
+- back crotch extension = front extension + 3 cm
+- front center waist moves 0.5 cm inward and 1 cm down
+- back center line moves 4 cm inward at the original top and extends 2.5 cm upward
 - front waist width = (1/2 waist) / 2 + 1.5 cm
 - back waist width = (1/2 waist) / 2 + 0.5 cm
-- hem = half chosen circumference; front −1 cm, back +1 cm
-- back dart intended at 10 cm long × 2 cm wide
-- front crotch curve intended shallower than back; Bézier curves were the planned/used representation
-- inputs in cm; SVG dimensions converted to mm
+- front grainline = midpoint between front crotch point and side seam at crotch level
+- back grainline reuses the front side-to-grain distance
+- hem = half chosen circumference; front -1 cm, back +1 cm
+- front knee is derived from the straight crotch-to-inseam-hem guide, then moved 1 cm toward the grainline
+- back knee adds 1 cm each side relative to the front knee half-width
+- back dart = 10 cm long x 2 cm wide
 
-## Components known to have worked
+## Regression coverage
 
-Measurement-based construction calculations, hip/crotch/knee/hem guides, front/back crotch extensions, crease/grainline scaffold, and SVG construction output. The later back-piece geometry was remembered as drafting relatively correctly.
+The test suite verifies:
 
-## Known broken behavior
+1. reference sample formulas
+2. continuous/closed front outline
+3. continuous/closed back outline
+4. tutorial-derived front knee placement
+5. back knee +1 cm rule
+6. equal front/back lower side-seam length
+7. equal front/back lower inseam length
+8. back dart dimensions
 
-The remembered later implementation had an incorrect **front pants path connection around the crotch/inseam area**. The front outline mixed or connected line/path segments incorrectly, while the back piece appeared comparatively correct.
+## Reference sample
 
-The exact faulty later function/path sequence is NOT present in the recoverable transcript. Do not assume the simplified construction exporter in this snapshot is the buggy later implementation; it predates/under-represents that state.
+For waist 74 cm, hip 96 cm, waist-to-hip 20 cm, crotch depth 26 cm, waist-to-knee 60 cm, waist-to-ankle 104 cm, hem circumference 46 cm:
 
-## Missing / not recoverable verbatim
+- construction width = 50 cm
+- crotch level = 27.5 cm
+- front crotch extension = 6 cm
+- back crotch extension = 9 cm
+- front grainline x = 9.5 cm
+- back grainline x = 40.5 cm
 
-- complete later front outline/path code
-- complete later back outline/path code
-- exact Bézier control points from the buggy revision
-- any Streamlit UI source, if actually implemented
-- PDF/DXF exporter source, if implemented later
-- sample SVG/screenshots from the later buggy revision
-- original later test output
+## Remaining refinement
 
-These must not be invented and labeled as recovered artifacts.
+The major historical front-crotch path-mixing problem is structurally addressed by named, piece-local semantic segments and endpoint continuity tests.
 
-## Recommended next debugging steps
+The next important work is fit/seam refinement rather than path repair:
 
-1. Reintroduce front/back outline segments as named semantic segments.
-2. Render every named point and segment with temporary labels/indices.
-3. Verify front traversal: center-front waist → waist/side → hip → side knee → side hem → inseam hem → inseam knee → crotch point → crotch curve → center front.
-4. Ensure the front crotch curve terminates at the intended crotch point and the inseam starts at that same endpoint.
-5. Assert adjacent path segments share endpoints within tolerance.
-6. Keep front/back point namespaces separate to prevent cross-piece references.
-7. Compare geometry against the tutorial step-by-step before adding seam allowance or more export formats.
+1. walk front/back upper side seams and equalize them
+2. walk front/back upper inseams and equalize them
+3. refine Bézier control points while preserving seam lengths
+4. verify waistline/dart shaping against a toile or trusted drafted reference
+5. add notches and seam allowance only after the base block is validated
+6. later add printable PDF/DXF output and UI
 
-## Scope decision
-
-Do not hide the historical defect by redesigning the engine before reproducing it. First rebuild/locate the missing later outline logic, reproduce the front failure, add a regression test, then fix it.
+Current seam diagnostics are intentionally retained in `draft["checks"]` so upper-seam differences can be measured rather than hidden.
