@@ -1,0 +1,45 @@
+{
+  "guides": {
+    "width": 50.0,
+    "height": 104.0,
+    "y_hip": 20.0,
+    "y_crotch": 27.5,
+    "y_knee": 60.0,
+    "y_hem": 104.0,
+    "x_split": 25.0,
+    "front_crease_x": 9.5,
+    "back_crease_x": 40.5,
+    "front_waist_width": 20.0,
+    "back_waist_width": 19.0
+  },
+  "seam_walk": {
+    "enabled": true,
+    "tolerance_cm": 0.02,
+    "before": {
+      "upper_side_difference_cm": -0.5382842265830519,
+      "upper_inseam_difference_cm": 0.33324118278051884
+    },
+    "adjustments": {
+      "front_side_bulge_cm": 0.0,
+      "back_side_bulge_cm": 1.1365966796875,
+      "back_crotch_drop_cm": 0.337615966796875,
+      "back_inseam_bulge_cm": 0.0
+    },
+    "after": {
+      "upper_side_difference_cm": 3.373261186823129e-06,
+      "upper_inseam_difference_cm": 3.250979311530955e-06
+    }
+  },
+  "checks": {
+    "front_lower_side": 44.028655343417896,
+    "back_lower_side": 44.028655343417896,
+    "front_lower_inseam": 44.028655343417896,
+    "back_lower_inseam": 44.028655343417896,
+    "upper_side_difference": 3.373261186823129e-06,
+    "upper_inseam_difference": 3.250979311530955e-06
+  },
+  "status": {
+    "seam_allowance_added": false,
+    "physical_fit_validation_required": true
+  }
+}
