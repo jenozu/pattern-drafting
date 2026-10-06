@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-@dataclass
+@dataclass(frozen=True)
 class Measurements:
     """Body measurements in centimetres."""
     waist: float
@@ -10,7 +10,7 @@ class Measurements:
     waist_to_knee: float
     waist_to_ankle: float
 
-@dataclass
+@dataclass(frozen=True)
 class DraftConfig:
     hip_ease: float = 2.0
     crotch_ease: float = 1.5
@@ -18,3 +18,7 @@ class DraftConfig:
     front_waist_plus: float = 1.5
     back_waist_plus: float = 0.5
     hem_circ: float = 46.0
+    auto_seam_walk: bool = True
+    seam_tolerance: float = 0.02
+    max_back_crotch_drop: float = 2.0
+    max_side_bulge: float = 4.0
