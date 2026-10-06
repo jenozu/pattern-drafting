@@ -1,16 +1,23 @@
-# Pattern Drafting — Recovery Snapshot
+# Pattern Drafting
 
-This repository preserves the recoverable state of the sewing-pattern drafting project developed in ChatGPT. The first garment is a basic pants/trouser block based on the Shapes of Fabric basic pants drafting method.
-
-## Important recovery note
-
-The accessible conversation history retained the formulas, architecture, starter Python implementation, sample measurements, and known bug description. It did **not** retain the complete later source that produced the malformed front crotch/inseam path. This repository does not pretend that missing code was recovered. See `PROJECT_STATUS.md`.
+A Python sewing-pattern drafting project. The first implemented garment is a basic pants/trouser block based on the Shapes of Fabric basic pants drafting method.
 
 ## Current behavior
 
-The recovered scaffold accepts waist, hip, waist-to-hip, crotch depth, waist-to-knee, waist-to-ankle, and hem circumference; calculates construction levels, crotch extensions, hem distribution and crease/grainline positions; and exports construction geometry to `pants_block.svg` in millimetres.
+The program accepts body measurements in centimetres and generates separate front and back trouser-block outlines as SVG.
 
-The intended later implementation included complete front/back outlines, Bézier crotch curves, waist/hip/side/inseam shaping, a 10 cm × 2 cm back dart, grainlines, labels, and eventually printable/export formats. Those later complete paths were not recoverable verbatim.
+Implemented features include:
+
+- front/back crotch extensions
+- center-front and raised center-back construction
+- waist, hip, crotch, knee and hem shaping
+- crease/grainlines
+- tutorial-derived knee placement
+- separate front/back Bézier crotch and thigh curves
+- 10 cm x 2 cm back dart
+- debug point labels
+- seam-length diagnostics
+- regression tests for path continuity and core drafting rules
 
 ## Install
 
@@ -45,8 +52,10 @@ Enter measurements in centimetres. Output: `pants_block.svg`.
 pytest -q
 ```
 
-## Known bug / unfinished area
+## Development status
 
-The project later reached a state where the **back pants piece drafted relatively correctly**, while the **front piece had incorrect path/line connections around the crotch-to-inseam region**. The exact later buggy path-building source was not present in recoverable history, so it has not been fabricated here.
+The earlier malformed front crotch/inseam behavior is no longer represented by a single opaque SVG path. Front and back outlines now use named semantic segments with endpoint-continuity tests.
 
-See `PROJECT_STATUS.md` before continuing development.
+The block is still a development draft, not yet a production sewing pattern. The next stage is seam walking/equalization of the upper side seams and upper inseams, followed by physical/toile validation before adding seam allowances or printable export formats.
+
+See `PROJECT_STATUS.md` for the technical handoff.
