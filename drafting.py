@@ -4,6 +4,7 @@ from geometry import (
     segment_length,
 )
 from measurements import Measurements, DraftConfig
+from side_seam import fair_and_match_side_seams, upper_length
 
 UPPER_SIDE_NAMES = ("hip_side", "upper_side", "side_thigh")
 
@@ -86,67 +87,28 @@ def _right_angle_waist_control(center_waist, center_hip, handle_cm, side_directi
     ux, uy = max(candidates, key=lambda p: p[0] * side_direction)
     return (center_waist[0] + ux * handle_cm, center_waist[1] + uy * handle_cm)
 
-def _side_segments_with_bulge(segments, amount, direction):
-    """Lengthen an upper side seam without creating hip/crotch kinks.
-
-    The hip and crotch joins keep their original tangent handles. Extra length
-    is introduced farther away from those joins: at the waist-side half of
-    hip_side and the knee-side half of side_thigh. This keeps the visible
-    hip/seat transition smooth while still allowing seam walking.
-    """
-    result = []
-    for seg in segments:
-        adjusted = dict(seg)
-        if seg["type"] == "cubic":
-            if seg["name"] == "hip_side":
-                adjusted["c1"] = (
-                    seg["c1"][0] + direction * amount,
-                    seg["c1"][1],
-                )
-            elif seg["name"] == "side_thigh":
-                adjusted["c2"] = (
-                    seg["c2"][0] + direction * amount,
-                    seg["c2"][1],
-                )
-        result.append(adjusted)
-    return result
-
 def _equalize_upper_side_seams(front_segments, back_segments, cfg):
+    """Fair the upper side seams and, when enabled, walk them to equal length."""
     front_before = _seam_length(front_segments, UPPER_SIDE_NAMES)
     back_before = _seam_length(back_segments, UPPER_SIDE_NAMES)
-    front_bulge = 0.0
-    back_bulge = 0.0
 
-    if cfg.auto_seam_walk and abs(back_before - front_before) > cfg.seam_tolerance:
-        if front_before > back_before:
-            target = front_before
-            fn = lambda amount: _seam_length(
-                _side_segments_with_bulge(back_segments, amount, -1.0),
-                UPPER_SIDE_NAMES,
-            )
-            back_bulge = _binary_solve_increasing(
-                fn, target, 0.0, cfg.max_side_bulge
-            )
-            back_segments = _side_segments_with_bulge(back_segments, back_bulge, -1.0)
-        else:
-            target = back_before
-            fn = lambda amount: _seam_length(
-                _side_segments_with_bulge(front_segments, amount, +1.0),
-                UPPER_SIDE_NAMES,
-            )
-            front_bulge = _binary_solve_increasing(
-                fn, target, 0.0, cfg.max_side_bulge
-            )
-            front_segments = _side_segments_with_bulge(front_segments, front_bulge, +1.0)
+    if not cfg.auto_seam_walk:
+        return front_segments, back_segments, {
+            "front_before": front_before,
+            "back_before": back_before,
+            "front_after": front_before,
+            "back_after": back_before,
+            "front_bulge": 0.0,
+            "back_bulge": 0.0,
+        }
 
-    return front_segments, back_segments, {
-        "front_before": front_before,
-        "back_before": back_before,
-        "front_after": _seam_length(front_segments, UPPER_SIDE_NAMES),
-        "back_after": _seam_length(back_segments, UPPER_SIDE_NAMES),
-        "front_bulge": front_bulge,
-        "back_bulge": back_bulge,
-    }
+    front_segments, back_segments, result = fair_and_match_side_seams(
+        front_segments,
+        back_segments,
+        tolerance=cfg.seam_tolerance,
+        max_adjustment=cfg.max_side_bulge,
+    )
+    return front_segments, back_segments, result
 
 def _build_back_inseam(b_inseam_knee, b_crotch_x, base_y, drop=0.0, extra_bulge=0.0):
     crotch = (b_crotch_x, base_y + drop)
