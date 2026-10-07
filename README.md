@@ -14,9 +14,10 @@ The pants block now includes:
 - tutorial-derived crease/grainlines
 - tutorial-derived knee placement
 - separate front/back Bezier crotch and thigh curves
+- C2-continuous upper side-seam splines through waist, hip, crotch-level, and knee landmarks
 - back dart located on the curved waistline
 - 10 cm dart length and 2 cm dart intake
-- automatic seam walking/equalization
+- automatic inseam walking plus bounded side-seam fairing/ease
 - knee alignment notches
 - 5 cm print calibration square
 - clean or debug SVG output
@@ -26,7 +27,7 @@ The pants block now includes:
 - multi-size regression tests
 - GitHub Actions test workflow
 
-The historical front-crotch path-mixing failure is specifically guarded against by named semantic segments, endpoint-continuity tests, and sampled self-intersection checks.
+The historical front-crotch path-mixing failure is specifically guarded against by named semantic segments, endpoint-continuity tests, sampled self-intersection checks, and curvature-continuity tests through the hip and crotch joins.
 
 ## Important limitation
 
@@ -88,12 +89,14 @@ For the reference measurements above:
 - front grainline x: 9.5 cm
 - back grainline x: 40.5 cm
 
-Before seam walking, the reconstructed reference geometry differs by roughly:
+Before walking/fairing, the reconstructed reference geometry differs by roughly:
 
 - upper side seam: 5.4 mm
 - upper inseam: 3.3 mm
 
-The automated seam-walking pass reduces both to effectively zero within the configured tolerance.
+The upper inseam is equalized to essentially zero difference.
+
+For the upper side seam, the drafting engine now prioritizes a fair C2-continuous silhouette over forcing exact equality with an artificial bulge. The reference block finishes with about 3.2 mm of residual side-seam ease after the bounded fairing pass. That residual is reported explicitly for physical fit validation.
 
 The upper inseam means knee to crotch point. The center-front/center-back crotch curve is not counted as part of the inseam.
 
@@ -101,6 +104,6 @@ The upper inseam means knee to crotch point. The center-front/center-back crotch
 
     pytest -q
 
-The suite covers source construction formulas, path continuity, self-intersection detection, multiple body-size profiles, knee-placement rules, seam walking, raw/unwalked mode, dart dimensions, waist right angles, invalid measurements, and CLI SVG/report generation.
+The suite covers source construction formulas, path continuity, curvature continuity, self-intersection detection, multiple body-size profiles, knee-placement rules, seam walking, bounded side-seam ease, raw/unwalked mode, dart dimensions, waist right angles, invalid measurements, and CLI SVG/report generation.
 
 See PROJECT_STATUS.md and DESIGN_NOTES.md for the technical handoff.
