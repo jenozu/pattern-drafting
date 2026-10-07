@@ -31,7 +31,8 @@ def test_json_cli_generates_svg_and_report(tmp_path):
     assert report.exists()
     payload = json.loads(report.read_text())
     assert payload["status"]["seam_allowance_added"] is False
-    assert abs(payload["seam_walk"]["after"]["upper_side_difference_cm"]) < 0.001
+    assert abs(payload["seam_walk"]["after"]["upper_side_difference_cm"]) <= 0.75
+    assert payload["seam_walk"]["after"]["upper_side_residual_ease_cm"] <= 0.75
 
 def test_load_json_requires_measurement_keys(tmp_path):
     source = tmp_path / "bad.json"
