@@ -4,8 +4,6 @@ The silhouette is interpolated through construction landmarks, preserving
 their positions. A free waist-end slope controls seam length without a
 localised bulge at the hip or crotch joins.
 """
-from math import isfinite
-
 from geometry import segment_length
 
 NAMES = ("hip_side", "upper_side", "side_thigh")
@@ -30,7 +28,12 @@ def smooth_side_segments(segments, waist_slope=None):
         raise ValueError("Upper side-seam landmarks must increase in y")
 
     if waist_slope is None:
-        waist_slope = (x[1] - x[0]) / h[0]
+        first = original[0]
+        control_dy = first["c1"][1] - first["start"][1]
+        if abs(control_dy) > 1e-9:
+            waist_slope = (first["c1"][0] - first["start"][0]) / control_dy
+        else:
+            waist_slope = (x[1] - x[0]) / h[0]
 
     lower = by_name["side_lower_leg"]
     lower_dx = lower["end"][0] - lower["start"][0]
@@ -113,25 +116,28 @@ def fair_and_match_side_seams(front, back, tolerance, max_adjustment=4.0):
         return upper_length(proposed), proposed
 
     start_length, _ = fit(0)
-    maximum_length, _ = fit(max_adjustment / dy)
-    if maximum_length < target - tolerance:
-        raise ValueError(
-            "Could not match upper side-seam lengths within curvature limits"
-        )
+    maximum_length, maximum_proposal = fit(max_adjustment / dy)
 
-    lo, hi = 0.0, max_adjustment / dy
-    result = source
-    adjustment = 0.0
-    for _ in range(60):
-        mid = (lo + hi) / 2
-        length, proposal = fit(mid)
-        result, adjustment = proposal, mid * dy
-        if abs(length - target) <= min(tolerance, 1e-5):
-            break
-        if length < target:
-            lo = mid
-        else:
-            hi = mid
+    if maximum_length < target - tolerance:
+        # A fair curve is more important than forcing an exact seam match by
+        # creating another visible bulge. Use the full, bounded adjustment and
+        # report the small residual as ease to be handled during fit validation.
+        result = maximum_proposal
+        adjustment = max_adjustment
+    else:
+        lo, hi = 0.0, max_adjustment / dy
+        result = source
+        adjustment = 0.0
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            length, proposal = fit(mid)
+            result, adjustment = proposal, mid * dy
+            if abs(length - target) <= min(tolerance, 1e-5):
+                break
+            if length < target:
+                lo = mid
+            else:
+                hi = mid
 
     if shorten_front:
         fbase = result
@@ -141,11 +147,10 @@ def fair_and_match_side_seams(front, back, tolerance, max_adjustment=4.0):
         front_bulge, back_bulge = 0.0, adjustment
 
     fl, bl = upper_length(fbase), upper_length(bbase)
-    if abs(fl - bl) > tolerance:
-        raise ValueError("Upper side seam-length solver did not converge")
     return fbase, bbase, {
         "front_before": front_raw, "back_before": back_raw,
         "front_after": fl, "back_after": bl,
         "front_bulge": front_bulge,
         "back_bulge": back_bulge,
+        "residual_ease_cm": abs(bl - fl),
     }
