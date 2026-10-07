@@ -108,7 +108,11 @@ def fair_and_match_side_seams(front, back, tolerance, max_adjustment=4.0):
     target = upper_length(other)
     hip = next(s for s in source if s["name"] == "hip_side")
     dy = hip["end"][1] - hip["start"][1]
-    base_slope = (hip["end"][0] - hip["start"][0]) / dy
+    control_dy = hip["c1"][1] - hip["start"][1]
+    if abs(control_dy) > 1e-9:
+        base_slope = (hip["c1"][0] - hip["start"][0]) / control_dy
+    else:
+        base_slope = (hip["end"][0] - hip["start"][0]) / dy
     outward = +1 if shorten_front else -1
 
     def fit(amount):
