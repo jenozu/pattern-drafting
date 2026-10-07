@@ -147,3 +147,41 @@ def test_seam_walk_keeps_hip_and_crotch_side_tangents_smooth(m, piece_name):
         )
         assert cross == pytest.approx(0.0, abs=1e-8)
         assert dot > 0
+
+
+@pytest.mark.parametrize("m", PROFILES)
+@pytest.mark.parametrize("piece_name", ["front", "back"])
+def test_upper_side_spline_has_continuous_curvature(m, piece_name):
+    hem = 42 if m.hip < 90 else 46 if m.hip <= 102 else 50
+    segs = draft(m, DraftConfig(hem_circ=hem))["pieces"][piece_name]["segments"]
+    by_name = {seg["name"]: seg for seg in segs}
+
+    def second_x_at_start(seg):
+        h = seg["end"][1] - seg["start"][1]
+        return 6 * (
+            seg["start"][0] - 2 * seg["c1"][0] + seg["c2"][0]
+        ) / (h * h)
+
+    def second_x_at_end(seg):
+        h = seg["end"][1] - seg["start"][1]
+        return 6 * (
+            seg["end"][0] - 2 * seg["c2"][0] + seg["c1"][0]
+        ) / (h * h)
+
+    for incoming_name, outgoing_name in (
+        ("hip_side", "upper_side"),
+        ("upper_side", "side_thigh"),
+    ):
+        incoming = by_name[incoming_name]
+        outgoing = by_name[outgoing_name]
+        assert second_x_at_end(incoming) == pytest.approx(
+            second_x_at_start(outgoing), abs=1e-8
+        )
+
+
+@pytest.mark.parametrize("piece_name", ["front", "back"])
+def test_fairing_preserves_side_seam_landmarks(piece_name):
+    walked = draft()["pieces"][piece_name]
+    raw = draft(cfg=DraftConfig(hem_circ=46, auto_seam_walk=False))["pieces"][piece_name]
+    for name in ("side_waist", "side_hip", "side_crotch", "side_knee"):
+        assert walked["points"][name] == raw["points"][name]
