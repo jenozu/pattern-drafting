@@ -44,19 +44,34 @@ For seam walking:
 
 The center crotch curve is not part of the inseam. It becomes part of the center-front/center-back crotch seam when the garment is assembled.
 
-## Automatic seam walking
-
-The drafting tutorial requires seam lengths to be walked/equalized but does not prescribe a software algorithm.
-
-This implementation uses conservative geometry adjustments.
+## Upper inseam walking
 
 For the upper inseam, if the back upper inseam is longer than the front, the back crotch point is lowered until the two lengths match. This mirrors the tutorial's explicit note that lowering the back crotch curve slightly during equalization is acceptable.
 
 If the unusual inverse case occurs, additional back-inseam curvature is used instead of moving the front construction.
 
-For the upper side seam, whichever seam is shorter is lengthened by bowing the cubic Bezier control points outward. Endpoints remain fixed.
+## C2-continuous side seam
 
-All automatic adjustments are bounded by DraftConfig limits and recorded in the generated diagnostic report.
+The upper side seam is represented as three cubic Beziers sharing the construction landmarks:
+
+- side waist
+- side hip
+- side crotch level
+- side knee
+
+The control points are solved as a y-parameterized cubic Hermite spline with continuous first and second derivatives at the hip and crotch joins. In practical terms, the seam has no angle kink and no abrupt curvature change at those landmarks.
+
+The waist-end derivative is seeded from the original draft's first Bezier control handle so the source silhouette intent is retained. The knee-end derivative follows the knee-to-hem side seam.
+
+## Bounded side-seam adjustment
+
+Exact seam-length equality is not forced when doing so would require a visibly distorted silhouette.
+
+If one upper side seam is shorter, the algorithm may adjust its waist-end derivative within DraftConfig.max_side_bulge. If the configured bound is reached before exact equality, the fair spline is kept and the remaining difference is recorded as residual ease.
+
+For the reference measurements, this leaves roughly 3.2 mm residual upper side-seam ease while removing the visible back hip/seat bubble.
+
+This is intentional: the residual must be evaluated in the physical toile rather than hidden by an artificial CAD bulge.
 
 ## Waistline geometry
 

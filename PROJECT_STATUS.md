@@ -4,16 +4,17 @@
 
 The original conversation's exact late-stage buggy source could not be recovered verbatim. The pants block was reconstructed from the documented drafting method, while preserving the known architectural intent and directly guarding against the historical front crotch/inseam path-crossing failure.
 
-The reconstructed base block is now code-complete through digital seam walking, but it is not yet physically fit-validated.
+The reconstructed base block is code-complete through digital seam walking and side-seam fairing, but it is not yet physically fit-validated.
 
 ## Architecture
 
 - main.py: CLI/JSON input, SVG generation, optional report generation
 - measurements.py: body measurements and drafting configuration
 - drafting.py: source-method construction, named geometry, automatic seam walking
+- side_seam.py: C2-continuous upper side-seam fairing and bounded length adjustment
 - geometry.py: Bezier math, seam lengths, interpolation, sampling, self-intersection checks
 - svg_export.py: front/back layout, grainlines, dart, notches, debug guides, calibration square
-- tests/: construction, topology, fit-sanity, validation, and CLI regression tests
+- tests/: construction, topology, curvature, fit-sanity, validation, and CLI regression tests
 - examples/measurements.json: reference measurements
 - examples/reference_block.svg: generated reference block
 - examples/reference_report.json: generated seam-walk/reference diagnostics
@@ -37,30 +38,30 @@ The reconstructed base block is now code-complete through digital seam walking, 
 - back dart = 10 cm long with 2 cm intake
 - waistlines begin at right angles to center front/back
 
-## Seam walking
+## Inseam walking
 
-The source method calls for walking knee-to-hem and knee-to-crotch on the inseams, then knee-to-hem and knee-to-waist on the side seams.
-
-The code now models those seam sections correctly.
+The source method calls for walking knee-to-hem and knee-to-crotch on the inseams.
 
 For the reference block before walking:
 
 - back upper inseam is about 0.33 cm longer than front
-- back upper side seam is about 0.54 cm shorter than front
 
-Automatic equalization:
+Automatic equalization lowers the back crotch point slightly when needed. The reference block uses about a 0.34 cm back-crotch drop and reduces the upper-inseam difference to effectively zero.
 
-- lowers the back crotch point slightly when the back upper inseam is longer
-- bows the shorter upper side seam outward using Bezier control-point adjustment
-- leaves construction endpoints intact except for the source-permitted back-crotch lowering
-- records all adjustments in the generated seam_walk diagnostics
+## Upper side-seam fairing
 
-The reference block requires approximately:
+The previous implementation forced the shorter upper side seam to exact length by pushing multiple Bezier handles outward. That made the seam lengths match, but it could create a visible bubble through the back hip/seat area.
 
-- 0.34 cm back crotch drop
-- 1.14 cm control-point bulge on the back upper side-seam curves
+The current implementation instead:
 
-These are geometry-control adjustments, not body-ease additions.
+- keeps the waist, hip, crotch-level, and knee construction landmarks fixed
+- replaces the three upper side-seam cubic segments with a C2-continuous spline
+- preserves the intended waist-end tangent from the original draft
+- preserves a smooth knee transition toward the lower side seam
+- applies only a bounded additional waist-end tangent adjustment to reduce length mismatch
+- explicitly reports any small residual side-seam ease instead of hiding it with a distorted curve
+
+For the reference block, the final residual upper side-seam difference is about 0.32 cm (3.2 mm). This is intentionally preferred over the visibly distorted exact-match curve and should be assessed in the toile.
 
 ## Regression protections
 
@@ -68,16 +69,20 @@ The expanded suite checks:
 
 - source formulas
 - closed/continuous paths
+- tangent continuity at side-seam joins
+- curvature continuity through hip and crotch joins
 - no sampled self-intersections
+- fixed side-seam construction landmarks
 - multiple body-size profiles
-- seam walking to tolerance
+- bounded residual side-seam ease
+- upper inseam walking to tolerance
 - raw/unwalked behavior
 - 2 cm x 10 cm back dart
 - waist/center-seam right angles
 - CLI SVG/report creation
 - invalid measurement rejection
 
-This directly protects against the original failure mode where front crotch/inseam geometry could connect to the wrong path.
+This directly protects against both historical failure modes: crossed crotch/inseam paths and the later back hip/seat bubble.
 
 ## Intentionally not implemented yet
 
@@ -100,5 +105,3 @@ A physical fit/toile check is now the next meaningful validation gate.
 Print the block at 100 percent scale, verify the 5 cm calibration square, make a toile/muslin, and assess waist, hip, front rise, back rise, crotch depth/shape, seat, thigh, knee, and inseam/outseam balance.
 
 Photos or precise alteration notes from that toile can then be turned into block-specific fit corrections.
-
-Until that physical check occurs, additional automation would mainly add polish around an unvalidated block rather than improve drafting correctness.

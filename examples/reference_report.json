@@ -21,13 +21,14 @@
     },
     "adjustments": {
       "front_side_bulge_cm": 0.0,
-      "back_side_bulge_cm": 2.7342529296875,
+      "back_side_bulge_cm": 4.0,
       "back_crotch_drop_cm": 0.337615966796875,
       "back_inseam_bulge_cm": 0.0
     },
     "after": {
-      "upper_side_difference_cm": -8.183072964129678e-06,
-      "upper_inseam_difference_cm": 3.250979311530955e-06
+      "upper_side_difference_cm": -0.3189829451022348,
+      "upper_inseam_difference_cm": 3.250979311530955e-06,
+      "upper_side_residual_ease_cm": 0.3189829451022348
     }
   },
   "checks": {
@@ -35,7 +36,7 @@
     "back_lower_side": 44.028655343417896,
     "front_lower_inseam": 44.028655343417896,
     "back_lower_inseam": 44.028655343417896,
-    "upper_side_difference": -8.183072964129678e-06,
+    "upper_side_difference": -0.3189829451022348,
     "upper_inseam_difference": 3.250979311530955e-06
   },
   "status": {
