@@ -87,16 +87,28 @@ def _right_angle_waist_control(center_waist, center_hip, handle_cm, side_directi
     return (center_waist[0] + ux * handle_cm, center_waist[1] + uy * handle_cm)
 
 def _side_segments_with_bulge(segments, amount, direction):
-    """Lengthen an upper side seam by bowing its cubic controls outward."""
+    """Lengthen an upper side seam without creating hip/crotch kinks.
+
+    The hip and crotch joins keep their original tangent handles. Extra length
+    is introduced farther away from those joins: at the waist-side half of
+    hip_side and the knee-side half of side_thigh. This keeps the visible
+    hip/seat transition smooth while still allowing seam walking.
+    """
     result = []
     for seg in segments:
-        if seg["name"] in UPPER_SIDE_NAMES and seg["type"] == "cubic":
-            adjusted = dict(seg)
-            adjusted["c1"] = (seg["c1"][0] + direction * amount, seg["c1"][1])
-            adjusted["c2"] = (seg["c2"][0] + direction * amount, seg["c2"][1])
-            result.append(adjusted)
-        else:
-            result.append(dict(seg))
+        adjusted = dict(seg)
+        if seg["type"] == "cubic":
+            if seg["name"] == "hip_side":
+                adjusted["c1"] = (
+                    seg["c1"][0] + direction * amount,
+                    seg["c1"][1],
+                )
+            elif seg["name"] == "side_thigh":
+                adjusted["c2"] = (
+                    seg["c2"][0] + direction * amount,
+                    seg["c2"][1],
+                )
+        result.append(adjusted)
     return result
 
 def _equalize_upper_side_seams(front_segments, back_segments, cfg):

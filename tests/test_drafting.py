@@ -111,3 +111,39 @@ def test_effective_half_waist_is_close_to_body_measurement_after_dart():
     back_waist = next(s for s in d["pieces"]["back"]["segments"] if s["name"] == "waist")
     effective = segment_length(front_waist) + segment_length(back_waist) - 2.0
     assert effective == pytest.approx(sample().waist / 2.0, abs=0.5)
+
+
+@pytest.mark.parametrize("m", PROFILES)
+@pytest.mark.parametrize("piece_name", ["front", "back"])
+def test_seam_walk_keeps_hip_and_crotch_side_tangents_smooth(m, piece_name):
+    hem = 42 if m.hip < 90 else 46 if m.hip <= 102 else 50
+    segs = draft(m, DraftConfig(hem_circ=hem))["pieces"][piece_name]["segments"]
+    by_name = {seg["name"]: seg for seg in segs}
+
+    for incoming_name, outgoing_name in (
+        ("hip_side", "upper_side"),
+        ("upper_side", "side_thigh"),
+    ):
+        incoming = by_name[incoming_name]
+        outgoing = by_name[outgoing_name]
+        join = incoming["end"]
+        assert outgoing["start"] == join
+
+        incoming_tangent = (
+            join[0] - incoming["c2"][0],
+            join[1] - incoming["c2"][1],
+        )
+        outgoing_tangent = (
+            outgoing["c1"][0] - join[0],
+            outgoing["c1"][1] - join[1],
+        )
+        cross = (
+            incoming_tangent[0] * outgoing_tangent[1]
+            - incoming_tangent[1] * outgoing_tangent[0]
+        )
+        dot = (
+            incoming_tangent[0] * outgoing_tangent[0]
+            + incoming_tangent[1] * outgoing_tangent[1]
+        )
+        assert cross == pytest.approx(0.0, abs=1e-8)
+        assert dot > 0
