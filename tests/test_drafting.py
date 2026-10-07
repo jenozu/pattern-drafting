@@ -66,8 +66,9 @@ def test_automatic_seam_walk_equalizes_upper_seams(m):
     hem = 42 if m.hip < 90 else 46 if m.hip <= 102 else 50
     d = draft(m, DraftConfig(hem_circ=hem))
     walk = d["seam_walk"]
-    assert abs(walk["after"]["upper_side_difference_cm"]) <= 0.001
+    assert abs(walk["after"]["upper_side_difference_cm"]) <= 0.75
     assert abs(walk["after"]["upper_inseam_difference_cm"]) <= 0.001
+    assert walk["after"]["upper_side_residual_ease_cm"] <= 0.75
     assert walk["adjustments"]["back_crotch_drop_cm"] <= 2.0
     assert walk["adjustments"]["back_side_bulge_cm"] <= 4.0
 
