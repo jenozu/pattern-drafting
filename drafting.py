@@ -402,6 +402,10 @@ def draft_basic_pants_block(m: Measurements, cfg: DraftConfig):
         "after": {
             "upper_side_difference_cm": side_walk["back_after"] - side_walk["front_after"],
             "upper_inseam_difference_cm": inseam_walk["back_after"] - inseam_walk["front_after"],
+            "upper_side_residual_ease_cm": side_walk.get(
+                "residual_ease_cm",
+                abs(side_walk["back_after"] - side_walk["front_after"]),
+            ),
         },
     }
 
